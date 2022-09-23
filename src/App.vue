@@ -24,14 +24,14 @@
           <button :class="[showing === 'overdue' ? 'active' : '']" @click="show('overdue')">Overdue</button>
         </li>
       </ul>
-      <span>
+      <span class="pb-2 md:pb-0">
         Total payable amount:  <p class="text-lg font-semibold text-light">${{amountPayable / 100}} </p>  <p class="font-thin">USD</p>
       </span>
     </div>
   <div class="table mt-4">
-    <div class="table-head bg-white justify-space-between p-4">
-    <div class="flex gap-x-5 relative">
-      <button class="filter gap-x-2" @click="openFilter">
+    <div class="table-head flex flex-wrap flex-col md:flex-row bg-white justify-space-between p-4">
+   
+      <button class="filter cursor-pointer gap-x-2 md:mr-4" @click="openFilter">
         <img src="./assets/images/filter.svg" class="w-10" alt="">
         Filter
       </button>
@@ -48,7 +48,7 @@
               v-model="filters.default"
               type="radio"
               name="subject"
-              @change="showAll"
+              @change="show('all')"
             />
             
           </span>
@@ -104,7 +104,7 @@
               v-model="filter.all"
               type="radio"
               name="subject"
-               @change="showAll"
+              @change="show('all')"
             />
             
           </span>
@@ -132,16 +132,13 @@
           
         </div>
         </div>
-      <div class="search">
+      <div class="search my-2 md:my-0">
         <input type="search" name="" v-model="search" placeholder="Search Users by Name, Email or Date" id="">
         <img class="icon" src="./assets/images/Search.svg" alt="">
       </div>
-    </div>
-    <div class="w-full flex justify-end">
-      <button @click="markAsPaid" class="bg-light uppercase text-white py-2 px-2 text-sm rounded-md">
+      <button @click="markAsPaid" class="md:ml-auto bg-light uppercase text-white py-2 px-2  text-sm rounded-md">
         Pay Dues
       </button>
-    </div>
    </div>
    <div class="main-tabe" >
     
@@ -159,12 +156,25 @@
       <th class="w-1/12"><i class="uil uil-ellipsis-v text-lg"></i></th>
     </tr>
   </thead>
-  <tbody>
-      <tr v-for="user in currentUsers" :key="user.id" class="text-sm bg-white h-18">
-      <td class="">
+  <template v-if="currentUsers.length == 0">
+    <tr>
+      <td></td>
+      <td
+        colspan="6"
+        class="mx-auto text-sm font-medium"
+      >
+        <p class="text-center py-8">NO RECORDS FOUND</p>
+      </td>
+    </tr>
+  </template>
+  <tbody v-for="user in currentUsers" :key="user.id">
+     <tr class="text-sm bg-white h-20"> 
+       <td class="">
        <div class="flex items-center">
          <input type="checkbox" name="" id="" @change="marking(user.id)">  
-      <span class="more ml-4"><i class="uil uil-angle-down"></i></span>
+          <span class="more ml-4" @click="toggleView(user.id)"><i class="uil " :class="
+            view === user.id ? 'uil-angle-down' : 'uil-angle-up'
+          "></i></span>
        </div>
        </td>
       <td >
@@ -177,54 +187,93 @@
         {{user.userStatus}}</button>
         <p>Last login: {{user.lastLogin}}</p>
         </td>
-      <td><button :class="[user.paymentStatus === 'paid' ? 'paid' : user.paymentStatus === 'unpaid' ? 'unpaid' : 'over-due']" class="statuses" >
+      <td>
+        <button :class="[user.paymentStatus === 'paid' ? 'paid' : user.paymentStatus === 'unpaid' ? 'unpaid' : 'over-due']" class="statuses" >
         <span class="w-2 h-2 bg-primary px-1"></span>
         {{user.paymentStatus}}</button>
         <p class="text-dark" v-if="user.paymentStatus === 'paid'">Paid on {{user.paidOn}}</p>
         <p class="text-dark" v-if="user.paymentStatus === 'unpaid'">Dues on 15/APR/2020</p>
         <p class="text-dark" v-if="user.paymentStatus === 'overdue'">Dued on 15/APR/2020</p>
         </td>
-      <td><p class="text-dark">${{user.amountInCents / 100}}</p>
+      <td>
+        <p class="text-dark">${{user.amountInCents / 100}}</p>
       <p class="font-light">USD</p>
       </td>
       <td>View more</td>
       <td>
         <div class="relative">
-          <p @click="showMore(user.id)"><i class="uil uil-ellipsis-v text-lg"></i></p>
-        <div 
+          <p @click="showMore(user.id)"><i class="cursor-pointer uil uil-ellipsis-v text-lg"></i></p>
+          <div 
           :class="more  === user.id ? 'show' : ''"
           class="more-modal"
         >
-          <span class="flex items-center justify-between filter-item text-dark">
+        <p @click="showMore(user.id)" class="cursor-pointer flex justify-end shadow-md bg-white cancel rounded-full">X</p>
+          <span class="flex items-center justify-between filter-item px-4 py-2 text-dark">
             <p>Edit</p>
             
           </span>
-          <span class="flex items-center justify-between filter-item text-dark">
+          <span class="flex items-center justify-between filter-item  px-4 py-2 text-dark">
             <p>View Profile</p>
             
           </span>
-          <span class="flex items-center justify-between filter-item text-success">
+          <span class="flex items-center justify-between filter-item  px-4 py-2 text-success">
             <p>Activate User</p>
             
           </span>
-          <span class="flex items-center justify-between filter-item text-error">
+          <span class="flex items-center justify-between filter-item  px-4 py-2 text-error">
             <p>Delete</p>
           </span>
           
         </div>
         </div>
       </td>
-    </tr>
-    <div class="row-child">
       
-    </div>
+     </tr> 
+     <template v-if="view  === user.id">
+        <tr class="text-xs border-t-2 border-secondary font-light bg-medium-dark h-18">
+            <th class=""></th>
+            <th class="">DATE</th>
+            <th>USER ACTIVITY</th>
+            <th class="flex items-center">
+              <p class="pr-2">DETAILS</p>
+              <i class="uil uil-info-circle font-bold text-lg"></i>
+            </th>
+      </tr>
+      <template v-if="user.activities.length">
+            <tr
+              class="bg-transparent"
+              v-for="(activity, i) in user.activities"
+              :key="i"
+            >
+              <td></td>
+              <td>{{ activity.date }}</td>
+              <td>
+                {{ activity.userActivity }}
+              </td>
+              <td colspan="2">
+                {{ activity.details }}
+              </td>
+            </tr>
+          </template>
+          <template v-else>
+            <tr>
+              <td></td>
+              <td
+                colspan="6"
+                class="mx-auto text-sm font-medium"
+              >
+                <p class="text-center py-8">NO RECORDS FOUND</p>
+              </td>
+            </tr>
+          </template>
+     </template>
   </tbody>
   
 </table>
 <div class="bg-dark-light table-bottom w-full text-primary flex justify-end items-center py-4 px-4">
     <div class="flex gap-x-8">
       <p>Rows per page: 10 <i class="uil uil-angle-down"></i></p>
-      <p>1-10 of 276</p>
+      <p>1-10 of {{currentUsers.length}}</p>
       <span class="flex gap-x-5 items-center">
         <i class="uil uil-angle-left text-xl "></i>
         <i class="uil uil-angle-right text-xl"></i>
@@ -257,6 +306,7 @@ export default {
       more: null,
       search: '',
       selected: [],
+      view: null,
       filters: {
         inactive: '',
         active: '',
@@ -308,6 +358,7 @@ export default {
       if(this.userData && this.showing === 'all'){
         const allUsers = this.userData.data
         this.users = allUsers
+        this.filter = false
       }
       if(this.userData && this.showing === 'unpaid'){
         const unpaid = this.userData.data.filter(user => user.paymentStatus === 'unpaid')
@@ -318,6 +369,13 @@ export default {
         this.users = overdue
       }
     },
+    // showAll(){
+    //   this.showing = 'all'
+    //   if(this.userData && this.showing === 'all'){
+    //     const allUsers = this.userData.data
+    //     this.users = allUsers
+    //   }
+    // },
     sortByFirstName(){ 
       if(this.userData){
        const sortByFirst = this.userData.data.slice(0).sort(function(a,b) {
@@ -371,15 +429,13 @@ export default {
         this.selected.push(x)
       }
     },
-    // markAsPaid(){
-    //   // if
-    //   // 
-
-    //   // if(user[0].paymentStatus !== 'paid' ){
-    //   //   this.$store.dispatch('markPaid', x);
-    //   //   user[0].paymentStatus = 'paid'
-    //   // } 
-    // },
+    toggleView(x){
+      if(this.view === x) {
+        this.view = null
+      } else {
+        this.view = x
+      }
+    },
     markAsPaid(){
       // if
       // 
@@ -400,16 +456,26 @@ export default {
 </script>
 
 <style lang="scss" >
-  .back-container{
+
+  .main-tabe {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .back-container {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
+    max-width: 100%;
     background: #F4F2FF;
     padding: 20px 8%;
     font-weight: 400;
     color: #6E6893;
+    /* @include sm {
+      width: 200vw;
+    } */
   }
+  
   .navigation{
     margin: 1.2rem 0;
 
@@ -417,6 +483,7 @@ export default {
     justify-content: space-between;
     border-bottom: 1px solid #C6C2DE;
     width: 100%;
+    flex-wrap: wrap;
     ul{
       display: flex;
       li{
@@ -439,14 +506,17 @@ export default {
       }
     }
   }
+  .lofty-head {
+    flex: 1;
+  }
   .table{
+    display: block !important;
+    /* overflow-x: auto; */
     width: 100%;
     box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
     border-radius: 10px;
     .table-head{
       width: 100%;
-      display: flex;
-      justify-content: space-between;
       border-top-left-radius: 6px;
       border-top-right-radius: 6px;
     }
@@ -457,33 +527,38 @@ export default {
       display: flex;
       align-items: center;
       row-gap: 4px;
-      width: 120px;
+      padding: 4px 8px;
+      /* width: 100px; */
       img{
         width: 20px;
       }
     }
     .search{
-      position: relative;
+      display: flex;
+      background: #F4F2FF;
+      flex-direction: row-reverse;
+      padding: 8px 4px;
+      flex: 1;
+      /* margin-right: 10px; */
+      border-radius: 6px;
+      max-width: 320px;
       input{
-        background: #F4F2FF;
-        border-radius: 6px;
         color: #6E6893;
         font-weight: 400;
         font-size: 12px;
-        padding: 10px 25px;
-        /* width: 100%; */
-        width: 270px;
+        background: #F4F2FF;
         outline: none;
-      }
-      input:hover{
-        border: 1px solid #6D5BD0;
+        padding-left: 10px;
+        flex: 1;
+        max-width: 100%;
       }
       .icon{
-        position: absolute;
-        top: 10px;
-        left: 5px;
         width: 16px;
+        max-width: unset;
       }
+    }
+    .search:hover{
+      border: 1px solid #6D5BD0;
     }
     th, td{
       text-align: left ;
@@ -558,13 +633,14 @@ export default {
     }
   }
   .filter-item {
-  padding: 6px;
   label {
     @apply cursor-pointer;
-    font-size: 16px;
+    font-size: 15px;
     color: #25213B;
-    font-weight: normal;
+    font-weight: 400;
+    padding: 4px;
   }
+  padding: 0 2px;
 }
 .filter-item:hover{
   background: #F2F0F9;
@@ -580,8 +656,8 @@ export default {
   top: 0;
 }
   .filter-modal {
-  width: 210px;
-  height: 385px;
+  width: 200px;
+  height: 365px;
   background: #ffffff;
   display: none;
   position: fixed;
@@ -610,7 +686,7 @@ export default {
   position: absolute;
   box-shadow: 0px 0px 9px rgba(0, 0, 0, 0.07);
   border-radius: 8px;
-  padding: 10px 20px;
+  padding: 10px 8px;
   overflow-y: auto;
   top: 50px;
   bottom: 0;
@@ -619,9 +695,24 @@ export default {
   &.show {
     display: block;
   }
+  .cancel{
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* left: 100%; */
+     z-index: 9999999999;
+  }
 }
-.table-bottom{
-  /* border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px; */
-}
+@media screen and (max-width: 768px) {
+     .search{
+      max-width: 100% !important;
+     }
+  }
 </style>

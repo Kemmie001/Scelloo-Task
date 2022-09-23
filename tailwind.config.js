@@ -15,6 +15,7 @@ module.exports = {
         'dark-light': '#F4F2FF',
         'success': '#007F00',
         error: '#D30000',
+        'medium-dark':  '#F2F0F9',
       },
       
     },
