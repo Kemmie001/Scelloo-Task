@@ -8,7 +8,7 @@
    <div class="flex justify-center items-center">
     <loader :loading="loading" :color="'#6D5BD0'" :radius="'20'" />
   </div>
-  <div  v-if="userData">
+  <div  v-if="userData && currentUsers">
      <div class="navigation">
       <ul class="">
         <li>
@@ -369,13 +369,6 @@ export default {
         this.users = overdue
       }
     },
-    // showAll(){
-    //   this.showing = 'all'
-    //   if(this.userData && this.showing === 'all'){
-    //     const allUsers = this.userData.data
-    //     this.users = allUsers
-    //   }
-    // },
     sortByFirstName(){ 
       if(this.userData){
        const sortByFirst = this.userData.data.slice(0).sort(function(a,b) {
@@ -437,12 +430,9 @@ export default {
       }
     },
     markAsPaid(){
-      // if
-      // 
       for(let  i = 0; i < this.selected.length; i++){
         const user = this.userData.data.filter(user => user.id === this.selected[i])
         if(user[0].paymentStatus !== 'paid' ){
-          // console.log("working")
         this.$store.dispatch('markPaid', this.selected[i]);
         user[0].paymentStatus = 'paid'
       } 
